@@ -10,6 +10,8 @@ inputs:
 outputs:
   mend_path:
     description: 'Path to the installed Mend CLI'
+  mend_version:
+    description: 'The version of the installed Mend CLI'
 
 runs:
   using: 'composite'
@@ -25,4 +27,10 @@ runs:
       run: |
         echo "mend_path=$(pwd)/mend" >> $GITHUB_ENV
         echo "$(pwd)" >> $GITHUB_PATH
+      shell: bash
+
+    - name: Check Mend CLI Version
+      run: |
+        echo "$(`pwd`/mend version)"
+        echo "mend_version=$(pwd)/mend version" >> $GITHUB_ENV
       shell: bash

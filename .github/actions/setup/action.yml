@@ -1,0 +1,31 @@
+name: 'Setup Mend.io CLI'
+description: 'Action to download and install the Mend.io CLI'
+
+inputs:
+  mend_cli_version:
+    description: 'Specific version of the Mend.io CLI to install'
+    required: false
+    default: 'latest'
+
+outputs:
+  mend_path:
+    description: 'Path to the installed Mend CLI'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download Mend CLI
+      run: |
+        if [ "${{ inputs.mend_cli_version }}" == "latest" ]; then
+          CLI_URL=$(curl -s https://api.github.com/repos/whitesource/mend-cli/releases/latest | jq -r '.assets[].browser_download_url' | grep "linux_amd64.tar.gz")
+        else
+          CLI_URL="https://github.com/whitesource/mend-cli/releases/download/${{ inputs.mend_cli_version }}/mend-cli_linux_amd64.tar.gz"
+        fi
+        curl -L $CLI_URL -o mend-cli.tar.gz
+        tar -xzf mend-cli.tar.gz
+        chmod +x mend
+
+      shell: bash
+    - name: Add Mend CLI to PATH
+      run: echo "mend_path=/usr/local/bin/mend" >> $GITHUB_ENV
+      shell: bash

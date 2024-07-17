@@ -1,0 +1,33 @@
+name: 'Log into Mend.io using the CLI'
+description: 'Action to log into Mend.io using the CLI'
+
+inputs:
+  mend_url:
+    description: 'The MEND_URL environment variable'
+    required: true
+  mend_organization:
+    description: 'The MEND_ORGANIZATION environment variable'
+    required: true
+  mend_organization_key:
+    description: 'The MEND_ORGANIZATION_KEY environment variable'
+    required: true
+  mend_user_key:
+    description: 'The MEND_USER_KEY environment variable'
+    required: true
+  mend_email:
+    description: 'The MEND_EMAIL environment variable'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Log into Mend.io using CLI
+      shell: bash
+      run: |
+        export MEND_URL=${{ inputs.mend_url }}
+        export MEND_ORGANIZATION=${{ inputs.mend_url }}
+        export MEND_ORGANIZATION_KEY=$${{ inputs.mend_organization_key }}
+        export MEND_USER_KEY=${{ inputs.mend_user_key }}
+        export MEND_EMAIL=${{ inputs.mend_email }}
+        
+        mend auth info --non-interactive

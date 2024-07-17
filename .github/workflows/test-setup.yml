@@ -1,0 +1,39 @@
+name: Test the setup action
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    paths:
+      - .github/actions/setup/**
+      - .github/workflows/test-setup.yml
+
+jobs:
+  setup-mend-cli:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkout mend-actions repository
+        uses: actions/checkout@v4
+        with:
+          repository: carlspring/mend-actions
+          path: mend-actions
+
+      - name: Set up Mend CLI
+        uses: ./mend-actions/.github/actions/setup
+
+      - name: Check if Mend CLI is on the PATH
+        run: |
+          if ! command -v mend &> /dev/null
+          then
+              echo "Mend CLI could not be found on the PATH"
+              exit 1
+          fi
+
+      - name: Run Mend.io Scan
+        run: mend version
+

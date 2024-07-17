@@ -14,18 +14,15 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Download Mend CLI
+    - name: Download The Mend.io CLI
       run: |
-        if [ "${{ inputs.mend_cli_version }}" == "latest" ]; then
-          CLI_URL=$(curl -s https://api.github.com/repos/whitesource/mend-cli/releases/latest | jq -r '.assets[].browser_download_url' | grep "linux_amd64.tar.gz")
-        else
-          CLI_URL="https://github.com/whitesource/mend-cli/releases/download/${{ inputs.mend_cli_version }}/mend-cli_linux_amd64.tar.gz"
-        fi
-        curl -L $CLI_URL -o mend-cli.tar.gz
-        tar -xzf mend-cli.tar.gz
+        CLI_URL=https://downloads.mend.io/cli/linux_amd64/mend
+        curl -L $CLI_URL -o mend
         chmod +x mend
-
       shell: bash
+
     - name: Add Mend CLI to PATH
-      run: echo "mend_path=/usr/local/bin/mend" >> $GITHUB_ENV
+      run: |
+        echo "mend_path=$(pwd)/mend" >> $GITHUB_ENV
+        echo "$(pwd)" >> $GITHUB_PATH
       shell: bash

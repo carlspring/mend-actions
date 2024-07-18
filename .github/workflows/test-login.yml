@@ -9,15 +9,25 @@ on:
       - .github/actions/mend-login/**
       - .github/workflows/test-login.yml
 
+env:
+  MEND_URL: ${{ secrets.MEND_URL }}
+  MEND_ORGANIZATION: ${{ secrets.MEND_ORGANIZATION }}
+  MEND_ORGANIZATION_KEY: ${{ secrets.MEND_ORGANIZATION_KEY }}
+  MEND_USER_KEY: ${{ secrets.MEND_USER_KEY }}
+  MEND_EMAIL: ${{ secrets.MEND_EMAIL }}
+
 jobs:
-  mend_login_test:
+  mend-login-test:
     runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+      security-events: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Checkout mend-actions repository
         uses: actions/checkout@v4
         with:
           repository: carlspring/mend-actions
@@ -25,14 +35,6 @@ jobs:
 
       - name: Set up Mend CLI
         uses: ./mend-actions/.github/actions/setup
-        with:
-          mend_cli_version: ${{ secrets.MEND_CLI_VERSION }}
 
       - name: Run Mend.io Login Action
         uses: ./mend-actions/.github/actions/login
-        with:
-          mend_url: ${{ secrets.MEND_URL }}
-          mend_organization: ${{ secrets.MEND_ORGANIZATION }}
-          mend_organization_key: ${{ secrets.MEND_ORGANIZATION_KEY }}
-          mend_user_key: ${{ secrets.MEND_USER_KEY }}
-          mend_email: ${{ secrets.MEND_EMAIL }}

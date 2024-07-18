@@ -26,7 +26,7 @@ runs:
       run: |
         export MEND_URL=${{ inputs.mend_url }}
         export MEND_ORGANIZATION=${{ inputs.mend_url }}
-        export MEND_ORGANIZATION_KEY=$${{ inputs.mend_organization_key }}
+        export MEND_ORGANIZATION_KEY=${{ inputs.mend_organization_key }}
         export MEND_USER_KEY=${{ inputs.mend_user_key }}
         export MEND_EMAIL=${{ inputs.mend_email }}
         

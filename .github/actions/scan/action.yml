@@ -1,0 +1,50 @@
+name: 'Scan Docker image using the Mend.io CLI'
+description: 'Action to scan a Docker image using the Mend.io CLI'
+
+inputs:
+  docker-image:
+    description: 'The Docker image to scan'
+    required: true
+  exclude-licensing:
+    description: 'Exclude licensing information from the scan results'
+    required: false
+    default: false
+  format:
+    description: 'The format for the the scan results'
+    required: false
+    default: 'sarif'
+  filename:
+    description: 'The filename for the scan results'
+    default: 'results.sarif'
+    required: false
+  scope:
+    description: 'The scope for the scan results'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Scan Docker image using the Mend.io CLI
+      shell: bash
+      run: |
+        mend image ${{ inputs.docker-image }} --format ${{ inputs.format }} --filename ${{ inputs.filename }} --scope "${{ inputs.scope }}" 
+
+    - name: Filter scan results
+      if: ${{ inputs.exclude-licensing }}
+#      with:
+#        exclude-licensing: ${{ inputs.exclude-licensing }}
+      shell: bash
+      run:
+        file=${{ inputs.filename }}
+        filtered=${{ inputs.filename }}.filtered
+        licenseFindingIds=$(jq -r '[ .runs[0].tool.driver.rules[] | select(.name == "license_finding").id ]' $file)
+
+        jq --argjson ids "$licenseFindingIds" '
+          .runs[] |= (
+            .results |= map(
+              select(.ruleId | IN($ids[]) | not)
+            )
+          )
+        ' $file > $filtered
+        
+        tree

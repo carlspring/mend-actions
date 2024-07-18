@@ -1,4 +1,4 @@
-name: Test the login action
+name: Test the scan action
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - master
   push:
     paths:
-      - .github/actions/login/**
+      - .github/actions/scan/**
       - .github/workflows/test-login.yml
 
 env:
@@ -17,21 +17,35 @@ env:
   MEND_EMAIL: ${{ secrets.MEND_EMAIL }}
 
 jobs:
-  mend-login-test:
+  test-scan:
     runs-on: ubuntu-latest
-
-    permissions:
-      actions: read
-      contents: read
-      pull-requests: read
-      security-events: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t vulnerable-image:latest -f src/test/docker/Dockerfile .
+
       - name: Set up Mend CLI
         uses: ./.github/actions/setup
 
-      - name: Run Mend.io Login Action
+      - name: Login into Mend.io
         uses: ./.github/actions/login
+
+      - name: Perform scan
+        uses: ./.github/actions/scan
+        with:
+          docker-image: vulnerable-image:latest
+          scope: "*//CTNR - FORME//vulnerable-image"
+
+
+      - name: Debug
+        run: |
+          ls -al
+          tree
+

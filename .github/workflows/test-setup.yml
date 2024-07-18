@@ -16,12 +16,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          repository: carlspring/mend-actions
-          path: mend-actions
 
       - name: Set up Mend CLI
-        uses: ./mend-actions/.github/actions/setup
+        uses: ./.github/actions/setup
 
       - name: Check if Mend CLI is on the PATH
         run: |

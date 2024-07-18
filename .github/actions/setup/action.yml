@@ -31,6 +31,7 @@ runs:
 
     - name: Check Mend CLI Version
       run: |
-        echo "$(`pwd`/mend version)"
-        echo "mend_version=$(`pwd`/mend version)" >> $GITHUB_ENV
+        mend_version=$(`pwd`/mend version | cut -d ':' -f 2)
+        echo "${mend_version}"
+        echo "mend_version=${mend_version}" >> $GITHUB_ENV
       shell: bash

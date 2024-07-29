@@ -6,7 +6,7 @@ on:
       - master
   push:
     paths:
-      - .github/actions/login/**
+      - login/**
       - .github/workflows/test-login.yml
 
 env:
@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Mend CLI
-        uses: ./.github/actions/setup
+        uses: ./setup
 
       - name: Run Mend.io Login Action
-        uses: ./.github/actions/login
+        uses: ./login

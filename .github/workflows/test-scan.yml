@@ -6,7 +6,7 @@ on:
       - master
   push:
     paths:
-      - .github/actions/scan/**
+      - scan/**
       - .github/workflows/test-login.yml
 
 env:
@@ -32,13 +32,13 @@ jobs:
           docker build -t vulnerable-image:latest -f src/test/docker/Dockerfile .
 
       - name: Set up Mend CLI
-        uses: ./.github/actions/setup
+        uses: ./setup
 
       - name: Login into Mend.io
-        uses: ./.github/actions/login
+        uses: ./login
 
       - name: Perform scan
-        uses: ./.github/actions/scan
+        uses: ./scan
         with:
           docker-image: vulnerable-image:latest
           scope: "*//CTNR - FORME//vulnerable-image"

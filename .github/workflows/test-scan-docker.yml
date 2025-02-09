@@ -1,0 +1,50 @@
+name: Test scanning of Docker images
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    paths:
+      - scan-docker/**
+      - .github/workflows/test-login.yml
+
+env:
+  MEND_URL: ${{ secrets.MEND_URL }}
+  MEND_ORGANIZATION: ${{ secrets.MEND_ORGANIZATION }}
+  MEND_ORGANIZATION_KEY: ${{ secrets.MEND_ORGANIZATION_KEY }}
+  MEND_USER_KEY: ${{ secrets.MEND_USER_KEY }}
+  MEND_EMAIL: ${{ secrets.MEND_EMAIL }}
+
+jobs:
+  test-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t vulnerable-image:latest -f src/test/docker/Dockerfile .
+
+      - name: Set up Mend CLI
+        uses: ./setup
+
+      - name: Login into Mend.io
+        uses: ./login
+
+      - name: Perform container scan
+        uses: ./scan-docker
+        with:
+          docker-image: vulnerable-image:latest
+          scope: "*//CTNR - FORME//vulnerable-image"
+
+      - name: Debug
+        run: |
+          ls -al
+          tree
+

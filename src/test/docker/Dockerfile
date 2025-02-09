@@ -1,7 +1,7 @@
-FROM ubuntu:23.10
+FROM ubuntu:24.04
 
 LABEL Description="This is Docker image with some intentional vulnerabilities for testing purposes."
-LABEL authors="martin.todorov@sap.com"
+LABEL authors="martin.steve.todorov@sap.com"
 
 ARG user=ubuntu
 

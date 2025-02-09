@@ -1,0 +1,48 @@
+name: 'Scan dependencies using the Mend.io CLI'
+description: 'Action to scan dependencies using the Mend.io CLI'
+
+inputs:
+  json_filename:
+    description: 'The JSON output filename for the scan results'
+    default: 'dependencies.json'
+    required: false
+  sarif_filename:
+    description: 'The SARIF output filename for the scan results'
+    default: 'results.sarif'
+    required: false
+  scope:
+    description: 'The scope for the scan results'
+    required: true
+  publish_to_mend:
+    description: 'Whether to publish the scan results to Mend.io'
+    default: 'true'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Scan dependencies using the Mend.io CLI
+      shell: bash
+      run: |
+        PUBLISH_TO_MEND_FLAG=""
+        if [ "${{ inputs.publish_to_mend }}" = "true" ]; then
+            PUBLISH_TO_MEND_FLAG="-u"
+        fi
+        
+        mend dep $PUBLISH_TO_MEND_FLAG --scope "${{ inputs.scope }}" --format json --export-results "${{ inputs.json_filename }}"
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'  # Adjust as needed
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f scan-dependencies/requirements.txt ]; then pip install -r scan-dependencies/requirements.txt; fi
+
+    - name: Run Python script
+      shell: bash
+      run: |
+        python ${GITHUB_ACTION_PATH}/mend-dependencies-sarif-converter.py

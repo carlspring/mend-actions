@@ -19,7 +19,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <version>4.3.13.RELEASE</version>
+            <version>4.3.20.RELEASE</version>
         </dependency>
 
         <!-- Another directly vulnerable dependency: jackson-databind 2.9.5 (Multiple CVEs including CVE-2018-12023, CVE-2018-1000873) -->

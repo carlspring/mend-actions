@@ -1,4 +1,4 @@
-name: Test the scan action
+name: Test scanning of dependencies
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - master
   push:
     paths:
-      - scan/**
+      - scan-dependencies/**
       - .github/workflows/test-login.yml
 
 env:
@@ -24,13 +24,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        run: |
-          docker build -t vulnerable-image:latest -f src/test/docker/Dockerfile .
-
       - name: Set up Mend CLI
         uses: ./setup
 
@@ -38,11 +31,9 @@ jobs:
         uses: ./login
 
       - name: Perform scan
-        uses: ./scan
+        uses: ./scan-dependencies
         with:
-          docker-image: vulnerable-image:latest
-          scope: "*//CTNR - FORME//vulnerable-image"
-
+          scope: "*//CTNR - FORME/webgoat-maven"
 
       - name: Debug
         run: |

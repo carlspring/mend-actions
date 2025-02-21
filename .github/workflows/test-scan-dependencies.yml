@@ -17,7 +17,7 @@ env:
   MEND_EMAIL: ${{ secrets.MEND_EMAIL }}
 
 jobs:
-  test-scan:
+  test-scan-dependencies:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,7 +33,7 @@ jobs:
       - name: Perform scan
         uses: ./scan-dependencies
         with:
-          scope: "*//CTNR - FORME/webgoat-maven"
+          scope: "*//CTNR - FORME//webgoat-maven"
 
       - name: Debug
         run: |

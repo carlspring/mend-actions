@@ -33,7 +33,7 @@ jobs:
       - name: Perform scan
         uses: ./scan-dependencies
         with:
-          scope: "*//CTNR - FORME//webgoat-maven"
+          scope: "*//GitHub Actions Tests//test-scan-dependencies"
 
       - name: Debug
         run: |

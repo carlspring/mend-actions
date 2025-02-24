@@ -41,7 +41,7 @@ jobs:
         uses: ./scan-docker
         with:
           docker-image: vulnerable-image:latest
-          scope: "*//CTNR - FORME//vulnerable-image"
+          scope: "*//GitHub Actions Tests//test-scan-docker"
 
       - name: Debug
         run: |

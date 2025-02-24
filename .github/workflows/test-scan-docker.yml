@@ -5,6 +5,8 @@ on:
     branches:
       - master
   push:
+    branches:
+      - master
     paths:
       - scan-docker/**
       - .github/workflows/test-login.yml

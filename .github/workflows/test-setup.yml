@@ -10,6 +10,7 @@ on:
     paths:
       - .github/workflows/test-setup.yml
       - setup/**
+  workflow_dispatch:
 
 jobs:
   setup-mend-cli:

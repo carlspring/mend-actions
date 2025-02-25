@@ -10,11 +10,12 @@ on:
     paths:
       - scan-docker/**
       - .github/workflows/test-login.yml
+  workflow_dispatch:
 
 env:
   MEND_URL: ${{ secrets.MEND_URL }}
-  MEND_ORGANIZATION: ${{ secrets.MEND_ORGANIZATION }}
-  MEND_ORGANIZATION_KEY: ${{ secrets.MEND_ORGANIZATION_KEY }}
+#  MEND_ORGANIZATION: ${{ secrets.MEND_ORGANIZATION }}
+#  MEND_ORGANIZATION_KEY: ${{ secrets.MEND_ORGANIZATION_KEY }}
   MEND_USER_KEY: ${{ secrets.MEND_USER_KEY }}
   MEND_EMAIL: ${{ secrets.MEND_EMAIL }}
 

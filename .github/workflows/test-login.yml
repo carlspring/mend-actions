@@ -10,6 +10,7 @@ on:
     paths:
       - login/**
       - .github/workflows/test-login.yml
+  workflow_dispatch:
 
 env:
   MEND_URL: ${{ secrets.MEND_URL }}

@@ -1,4 +1,7 @@
+import argparse
 import json
+import os
+from pathlib import Path
 
 def build_dependency_tree(dependency, indent="", is_last=True, current_vulnerability=None):
     """
@@ -9,8 +12,13 @@ def build_dependency_tree(dependency, indent="", is_last=True, current_vulnerabi
     current_line = f"{indent}{prefix}{dependency.get('name', 'unknown-artifact')}"
     vulnerabilities = dependency.get("vulnerabilities", [])
 
+    # Annotate all vulnerabilities if writing a full graph
+    if vulnerabilities and current_vulnerability is None:
+        vuln_names = ", ".join(v.get("name", "") for v in vulnerabilities)
+        current_line += f" ({vuln_names})"
+
     # Annotate only the current vulnerability if specified
-    if current_vulnerability and any(v.get("name") == current_vulnerability for v in vulnerabilities):
+    elif current_vulnerability and any(v.get("name") == current_vulnerability for v in vulnerabilities):
         current_line += f" ({current_vulnerability})"
 
     # Recursively process children
@@ -40,7 +48,31 @@ def find_vulnerable_dependencies(dependencies):
 
     return vulnerable_dependencies
 
-def create_sarif(vulnerable_dependencies, dependencies):
+def detect_tool_type(dependency):
+    """
+    Determine tool type (e.g., gradle, yarn) from dependency file.
+    """
+    dep_file = dependency.get("dependencyFile", "").lower()
+    if "build.gradle" in dep_file or "build.gradle.kts" in dep_file:
+        return "gradle"
+    elif "yarn.lock" in dep_file:
+        return "yarn"
+    else:
+        return "unknown"
+
+def group_by_tool_type(dependencies):
+    """
+    Group dependencies by their tool type.
+    """
+    grouped = {}
+    for dep in dependencies:
+        tool_type = detect_tool_type(dep)
+        if tool_type not in grouped:
+            grouped[tool_type] = []
+        grouped[tool_type].append(dep)
+    return grouped
+
+def create_sarif(vulnerable_dependencies, dependencies_by_tool):
     """
     Create a SARIF object from the vulnerable dependencies.
     """
@@ -52,6 +84,9 @@ def create_sarif(vulnerable_dependencies, dependencies):
     for dep in vulnerable_dependencies:
         name = dep.get("name", "unknown-artifact")
         vulnerabilities = dep.get("vulnerabilities", [])
+        tool_type = detect_tool_type(dep)
+        tool_deps = dependencies_by_tool.get(tool_type, [])
+
         for vuln in vulnerabilities:
             vuln_id = vuln.get("name", "unknown-vulnerability")
 
@@ -87,21 +122,22 @@ def create_sarif(vulnerable_dependencies, dependencies):
                 })
                 rule_ids.add(vuln_id)
 
-            # Build dependency tree for this specific vulnerability
+            # Build dependency tree for this specific vulnerability from correct tool group
             tree_for_sarif = "\n".join(
-                build_dependency_tree(dep, is_last=(i == len(dependencies) - 1), current_vulnerability=vuln_id)
-                for i, dep in enumerate(dependencies)
+                build_dependency_tree(root_dep, is_last=(i == len(tool_deps) - 1), current_vulnerability=vuln_id)
+                for i, root_dep in enumerate(tool_deps)
             )
+
+            markdown_msg = f"<b>Recommendations for [{vuln_id}]({url}):</b><br/><br/>" \
+                           f"* {fixResolution}.<br/><br/>" \
+                           f"<b>[View dependency graphs]({github_url}/{github_repository}/actions/runs/{workflow_run})<br/>"
 
             # Add formatted details
             results.append({
                 "ruleId": vuln_id,
                 "message": {
                     "text": f"{title}",
-                    "markdown": f"<b>Recommendations for [{vuln_id}]({url}):</b><br/><br/>"
-                                f"* {fixResolution}.<br/><br/>"
-                                f"<b>Dependency tree</b><br/><br/>"
-                                f"{tree_for_sarif}<br/>"
+                    "markdown": markdown_msg
                 },
                 "locations": [
                     {
@@ -142,7 +178,25 @@ def create_sarif(vulnerable_dependencies, dependencies):
     }
     return sarif
 
+def write_dependency_graphs(dependencies_by_tool):
+    """
+    Write each dependency graph to a separate file based on tool type.
+    """
+    output_dir = Path("dependency-graphs")
+    output_dir.mkdir(exist_ok=True)
+
+    for tool_type, deps in dependencies_by_tool.items():
+        tree = "\n".join(
+            build_dependency_tree(dep, is_last=(i == len(deps) - 1), current_vulnerability=None)
+            for i, dep in enumerate(deps)
+        )
+        filename = output_dir / f"dependency-graph-{tool_type}.txt"
+        with open(filename, "w") as f:
+            f.write(tree)
+        print(f"📜 Dependency graph written to: {filename}")
+
 def main(input_file, output_file):
+
     """
     Main script function.
     """
@@ -154,14 +208,20 @@ def main(input_file, output_file):
     if not isinstance(dependencies_data, list):
         raise ValueError("Unexpected JSON structure: Root must be a list.")
 
-    # Build the full Maven-style dependency tree
-    full_dependency_tree = "\n".join(
-        build_dependency_tree(dep, is_last=(i == len(dependencies_data) - 1))
-        for i, dep in enumerate(dependencies_data)
-    )
+    # Group dependencies by tool type (e.g., gradle, yarn)
+    dependencies_by_tool = group_by_tool_type(dependencies_data)
 
-    print("\nGenerated Full Dependency Tree:")
-    print(full_dependency_tree)
+    # Build and print full Maven-style dependency tree per tool type
+    print("\nGenerated Full Dependency Trees:")
+    for tool_type, deps in dependencies_by_tool.items():
+        print(f"\nTool: {tool_type}")
+        print("\n".join(
+            build_dependency_tree(dep, is_last=(i == len(deps) - 1), current_vulnerability=None)
+            for i, dep in enumerate(deps)
+        ))
+
+    # Write dependency graphs to files per tool
+    write_dependency_graphs(dependencies_by_tool)
 
     # Find vulnerable dependencies
     vulnerable_dependencies = find_vulnerable_dependencies(dependencies_data)
@@ -170,7 +230,7 @@ def main(input_file, output_file):
         return
 
     # Create SARIF output
-    sarif_data = create_sarif(vulnerable_dependencies, dependencies_data)
+    sarif_data = create_sarif(vulnerable_dependencies, dependencies_by_tool)
 
     # Write SARIF to output file
     try:
@@ -181,6 +241,20 @@ def main(input_file, output_file):
         print(f"Failed to write SARIF file: {e}")
 
 if __name__ == "__main__":
-    input_json = "dependencies.json"  # Path to input JSON
-    output_sarif = "results.sarif"    # Path to output SARIF file
-    main(input_json, output_sarif)
+    global github_url
+    global github_repository
+    global workflow_run
+
+    parser = argparse.ArgumentParser(description="Convert dependencies to SARIF with optional GitHub workflow link.")
+    parser.add_argument("--github-url", help="The GitHub host URL")
+    parser.add_argument("--github-repository", help="The GitHub repository owner/name")
+    parser.add_argument("--input", default="dependencies.json", help="Path to input JSON file")
+    parser.add_argument("--output", default="results.sarif", help="Path to output SARIF file")
+    parser.add_argument("--workflow-run", help="GitHub Actions workflow run ID")
+    args = parser.parse_args()
+
+    github_url = args.github_url
+    github_repository = args.github_repository
+    workflow_run = args.workflow_run
+
+    main(args.input, args.output)

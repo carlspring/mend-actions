@@ -35,12 +35,15 @@ This Github Action is responsible for carrying out a dependency scan and produci
 
 The following options are available:
 
-| Input Parameter      | Description                                          | Default Value       | Required |
-|----------------------|------------------------------------------------------|---------------------|----------|
-| `json_filename`      | The JSON output filename for the scan results        | `dependencies.json` | false    |
-| `sarif_filename`     | The SARIF output filename for the scan results       | `results.sarif`     | false    |
-| `scope`              | The scope for the scan results                       | n/a                 | true     |
-| `publish_to_mend`    | Whether to publish the scan results to Mend.io       | `true`              | true     |
+| Input Parameter      | Description                                    | Default Value         | Required |
+|----------------------|------------------------------------------------|-----------------------|----------|
+| `json_filename`      | The JSON output filename for the scan results  | `dependencies.json`   | false    |
+| `sarif_filename`     | The SARIF output filename for the scan results | `results.sarif`       | false    |
+| `scope`              | The scope for the scan results                 | n/a                   | true     |
+| `github_url`         | The URL for the GitHub repository              | `https://github.com`  | true     |
+| `github_repository`  | The name of the GitHub repository              | n/a                   | false    |
+| `publish_to_mend`    | Whether to publish the scan results to Mend.io | `true`                | true     |
+| `workflow_run`       | The ID of the workflow run                     | n/a                   | true     |
 
 ## The `scan-docker` Action
 

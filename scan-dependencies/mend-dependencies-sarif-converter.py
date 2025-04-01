@@ -131,8 +131,8 @@ def create_sarif(vulnerable_dependencies, dependencies_by_tool):
             markdown_msg = f"<b>Recommendations for [{vuln_id}]({url}):</b><br/><br/>" \
                            f"* {fixResolution}.<br/><br/>";
 
-            if display_dependency_graph_link:
-                markdown_msg += f"<b>[View dependency graphs]({github_url}/{github_repository}/actions/runs/{workflow_run})<br/>"
+            # if display_dependency_graph_link:
+            #     markdown_msg += f"<b>[View dependency graphs]({github_url}/{github_repository}/actions/runs/{workflow_run})<br/>"
 
             # Add formatted details
             results.append({

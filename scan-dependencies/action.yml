@@ -2,6 +2,10 @@ name: 'Scan dependencies using the Mend.io CLI'
 description: 'Action to scan dependencies using the Mend.io CLI'
 
 inputs:
+  display_dependency_graph_link:
+    description: 'Whether to display the dependency graph link in the scan results'
+    default: 'true'
+    required: true
   github_url:
     description: 'The GitHub URL'
     default: 'https://github.com'
@@ -57,6 +61,7 @@ runs:
       shell: bash
       run: |
         python ${GITHUB_ACTION_PATH}/mend-dependencies-sarif-converter.py \
+               --display-dependency-graph-link "${{ inputs.display_dependency_graph_link }}" \
                --input "${{ inputs.json_filename }}" \
                --output "${{ inputs.sarif_filename }}" \
                --github-url "${{ inputs.github_url }}" \

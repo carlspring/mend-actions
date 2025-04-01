@@ -129,8 +129,10 @@ def create_sarif(vulnerable_dependencies, dependencies_by_tool):
             )
 
             markdown_msg = f"<b>Recommendations for [{vuln_id}]({url}):</b><br/><br/>" \
-                           f"* {fixResolution}.<br/><br/>" \
-                           f"<b>[View dependency graphs]({github_url}/{github_repository}/actions/runs/{workflow_run})<br/>"
+                           f"* {fixResolution}.<br/><br/>"
+
+            if display_dependency_graph_link:
+                markdown_msg += f"<b>[View dependency graphs]({github_url}/{github_repository}/actions/runs/{workflow_run})<br/>"
 
             # Add formatted details
             results.append({
@@ -241,11 +243,13 @@ def main(input_file, output_file):
         print(f"Failed to write SARIF file: {e}")
 
 if __name__ == "__main__":
+    global display_dependency_graph_link
     global github_url
     global github_repository
     global workflow_run
 
     parser = argparse.ArgumentParser(description="Convert dependencies to SARIF with optional GitHub workflow link.")
+    parser.add_argument("--display-dependency-graph-link", default="true", help="Whether to display a link to the dependency graph")
     parser.add_argument("--github-url", help="The GitHub host URL")
     parser.add_argument("--github-repository", help="The GitHub repository owner/name")
     parser.add_argument("--input", default="dependencies.json", help="Path to input JSON file")
@@ -253,6 +257,7 @@ if __name__ == "__main__":
     parser.add_argument("--workflow-run", help="GitHub Actions workflow run ID")
     args = parser.parse_args()
 
+    display_dependency_graph_link = args.display_dependency_graph_link
     github_url = args.github_url
     github_repository = args.github_repository
     workflow_run = args.workflow_run

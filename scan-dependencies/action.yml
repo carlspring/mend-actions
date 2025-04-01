@@ -2,6 +2,14 @@ name: 'Scan dependencies using the Mend.io CLI'
 description: 'Action to scan dependencies using the Mend.io CLI'
 
 inputs:
+  github_url:
+    description: 'The GitHub URL'
+    default: 'https://github.com'
+    required: true
+  repository:
+    description: 'The repository'
+    default: "${{ github.repository }}"
+    required: true
   json_filename:
     description: 'The JSON output filename for the scan results'
     default: 'dependencies.json'
@@ -16,6 +24,9 @@ inputs:
   publish_to_mend:
     description: 'Whether to publish the scan results to Mend.io'
     default: 'true'
+    required: true
+  workflow_run:
+    description: 'The workflow run to associate the scan results with'
     required: true
 
 runs:
@@ -45,4 +56,9 @@ runs:
     - name: Run Python script
       shell: bash
       run: |
-        python ${GITHUB_ACTION_PATH}/mend-dependencies-sarif-converter.py
+        python ${GITHUB_ACTION_PATH}/mend-dependencies-sarif-converter.py \
+               --input "${{ inputs.json_filename }}" \
+               --output "${{ inputs.sarif_filename }}" \
+               --github-url "${{ inputs.github_url }}" \
+               --github-repository "${{ inputs.repository }}" \
+               --workflow-run "${{ inputs.workflow_run }}"
